@@ -3,8 +3,8 @@ export interface Player {
   y: number;
   width: number;
   height: number;
-  vx: number; // velocity x
-  vy: number; // velocity y
+  vx: number;
+  vy: number;
   isJumping: boolean;
   onGround: boolean;
 }
@@ -25,15 +25,17 @@ export interface Coin {
 }
 
 export interface Enemy {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  vx: number;
-  direction: number;
-  isDefeated: boolean;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    vx: number;
+    direction: number;
+    isDefeated: boolean;
 }
 
 export interface Keys {
-  [key: string]: boolean;
+  ArrowRight: boolean;
+  ArrowLeft: boolean;
+  Space: boolean;
 }

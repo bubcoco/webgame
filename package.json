@@ -9,7 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "ethers": "^6.15.0",
     "kaboom": "^3000.1.17",
+    "lucide-react": "^0.542.0",
     "next": "15.5.2",
     "react": "19.1.0",
     "react-dom": "19.1.0"

@@ -1,8 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Player, Platform, Coin, Enemy, Keys } from '@/lib/types';
-import { PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_SPEED, JUMP_FORCE, GRAVITY, TILE_SIZE } from '@/lib/constants';
+import { PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_SPEED, JUMP_FORCE, GRAVITY, TILE_SIZE } from '../lib/constants';
+import { Keys, Player, Platform, Coin, Enemy } from '../lib/types';
+
+
+// --- Game Resolution ---
+export const GAME_WIDTH = 1024;
+export const GAME_HEIGHT = 576; // 16:9 aspect ratio
 
 const SuperJumpQuest = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -44,8 +49,6 @@ const SuperJumpQuest = () => {
   // --- Load Player Image ---
   useEffect(() => {
     const img = new Image();
-    // Make sure you have an image at public/images/player.png
-    // img.src = '../public/images/player.png';
     img.src = '/images/player.png';
     img.onload = () => setPlayerImage(img);
     img.onerror = () => console.error("Failed to load player image. Make sure it's in the public folder.");
@@ -107,132 +110,111 @@ const SuperJumpQuest = () => {
 
   // --- Game Loop ---
   const gameLoop = useCallback(() => {
-    if (gameOver) {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'white';
-      ctx.font = '48px "Press Start 2P", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 40);
-      ctx.font = '24px "Press Start 2P", sans-serif';
-      ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 + 10);
-      ctx.fillText('Press Space to Restart', canvas.width / 2, canvas.height / 2 + 60);
-      return;
-    }
-    
-    setPlayer(p => {
-        let newVx = 0;
-        if (keys.ArrowRight) newVx = PLAYER_SPEED;
-        if (keys.ArrowLeft) newVx = -PLAYER_SPEED;
+    // We only update state in the game loop. All drawing is now in the draw() function.
+    if (!gameOver) {
+        setPlayer(p => {
+            let newVx = 0;
+            if (keys.ArrowRight) newVx = PLAYER_SPEED;
+            if (keys.ArrowLeft) newVx = -PLAYER_SPEED;
 
-        let newVy = p.vy + GRAVITY;
-        let newIsJumping = p.isJumping;
+            let newVy = p.vy + GRAVITY;
+            let newIsJumping = p.isJumping;
 
-        if (keys.Space && p.onGround && !p.isJumping) {
-            newVy = -JUMP_FORCE;
-            newIsJumping = true;
-        }
-
-        let newX = p.x + newVx;
-        let newY = p.y + newVy;
-        let newOnGround = false;
-
-        // Collision with platforms
-        level.forEach(platform => {
-            // Check for vertical collision (falling onto a platform)
-            if (p.x < platform.x + platform.width &&
-                p.x + p.width > platform.x &&
-                p.y + p.height <= platform.y &&
-                newY + p.height >= platform.y) 
-            {
-                newY = platform.y - p.height;
-                newVy = 0;
-                newOnGround = true;
-                newIsJumping = false;
+            if (keys.Space && p.onGround && !p.isJumping) {
+                newVy = -JUMP_FORCE;
+                newIsJumping = true;
             }
-        });
-        
-        // --- Enemy Logic ---
-        setEnemies(prevEnemies => prevEnemies.map(enemy => {
-            if (enemy.isDefeated) return enemy;
+
+            let newX = p.x + newVx;
+            let newY = p.y + newVy;
+            let newOnGround = false;
+
+            // Collision with platforms
+            level.forEach(platform => {
+                if (p.x < platform.x + platform.width &&
+                    p.x + p.width > platform.x &&
+                    p.y + p.height <= platform.y &&
+                    newY + p.height >= platform.y) 
+                {
+                    newY = platform.y - p.height;
+                    newVy = 0;
+                    newOnGround = true;
+                    newIsJumping = false;
+                }
+            });
             
-            // Player stomps enemy
-            if (p.x < enemy.x + enemy.width &&
-                p.x + p.width > enemy.x &&
-                p.y + p.height <= enemy.y &&
-                newY + p.height >= enemy.y)
-            {
-                setScore(s => s + 200);
-                newVy = -JUMP_FORCE / 2; // small bounce
-                return { ...enemy, isDefeated: true };
-            } 
-            // Player gets hit by enemy
-            else if (newX < enemy.x + enemy.width &&
-                newX + p.width > enemy.x &&
-                newY < enemy.y + enemy.height &&
-                newY + p.height > enemy.y)
-            {
+            // --- Enemy Logic ---
+            setEnemies(prevEnemies => prevEnemies.map(enemy => {
+                if (enemy.isDefeated) return enemy;
+                
+                if (p.x < enemy.x + enemy.width &&
+                    p.x + p.width > enemy.x &&
+                    p.y + p.height <= enemy.y &&
+                    newY + p.height >= enemy.y)
+                {
+                    setScore(s => s + 200);
+                    newVy = -JUMP_FORCE / 2;
+                    return { ...enemy, isDefeated: true };
+                } 
+                else if (newX < enemy.x + enemy.width &&
+                    newX + p.width > enemy.x &&
+                    newY < enemy.y + enemy.height &&
+                    newY + p.height > enemy.y)
+                {
+                    setGameOver(true);
+                }
+
+                let newEnemyX = enemy.x + enemy.vx * enemy.direction;
+                let newDirection = enemy.direction;
+                
+                let onPlatform = false;
+                level.forEach(platform => {
+                    const nextFootX = newDirection > 0 ? newEnemyX + enemy.width : newEnemyX;
+                    if(nextFootX > platform.x && nextFootX < platform.x + platform.width && enemy.y + enemy.height === platform.y){
+                        onPlatform = true;
+                    }
+                });
+                if(!onPlatform) {
+                    newDirection *= -1;
+                    newEnemyX = enemy.x + enemy.vx * newDirection;
+                }
+
+                return { ...enemy, x: newEnemyX, direction: newDirection };
+            }));
+
+            // --- Coin Collection ---
+            setCoins(prevCoins => prevCoins.map(coin => {
+              if (!coin.collected &&
+                  newX < coin.x + coin.width &&
+                  newX + PLAYER_WIDTH > coin.x &&
+                  newY < coin.y + coin.height &&
+                  newY + PLAYER_HEIGHT > coin.y) {
+                setScore(s => s + 100);
+                return { ...coin, collected: true };
+              }
+              return coin;
+            }));
+
+            if (newX < cameraX) {
+                newX = cameraX;
+            }
+
+            if (p.y > GAME_HEIGHT + 100) { // Use game height for fall check
                 setGameOver(true);
             }
 
-            let newEnemyX = enemy.x + enemy.vx * enemy.direction;
-            let newDirection = enemy.direction;
-            
-            // Basic enemy AI: turn around at platform edges
-            let onPlatform = false;
-            level.forEach(platform => {
-                const nextFootX = newDirection > 0 ? newEnemyX + enemy.width : newEnemyX;
-                if(nextFootX > platform.x && nextFootX < platform.x + platform.width && enemy.y + enemy.height === platform.y){
-                    onPlatform = true;
-                }
-            });
-            if(!onPlatform) {
-                newDirection *= -1;
-                newEnemyX = enemy.x + enemy.vx * newDirection;
-            }
+            return { ...p, x: newX, y: newY, vx: newVx, vy: newVy, isJumping: newIsJumping, onGround: newOnGround };
+        });
+        
+        // Update Camera
+        setCameraX(prevCamX => {
+            const targetCamX = player.x - 300;
+            const newCamX = prevCamX + (targetCamX - prevCamX) * 0.1;
+            return Math.max(0, newCamX);
+        });
+    }
 
-            return { ...enemy, x: newEnemyX, direction: newDirection };
-        }));
-
-        // --- Coin Collection ---
-        setCoins(prevCoins => prevCoins.map(coin => {
-          if (!coin.collected &&
-              newX < coin.x + coin.width &&
-              newX + PLAYER_WIDTH > coin.x &&
-              newY < coin.y + coin.height &&
-              newY + PLAYER_HEIGHT > coin.y) {
-            setScore(s => s + 100);
-            return { ...coin, collected: true };
-          }
-          return coin;
-        }));
-
-        // Left boundary
-        if (newX < cameraX) {
-            newX = cameraX;
-        }
-
-        // Fall off screen
-        if (p.y > 600) {
-            setGameOver(true);
-        }
-
-        return { ...p, x: newX, y: newY, vx: newVx, vy: newVy, isJumping: newIsJumping, onGround: newOnGround };
-    });
-    
-    // Update Camera
-    setCameraX(prevCamX => {
-        const targetCamX = player.x - 300;
-        // Smooth camera follow
-        const newCamX = prevCamX + (targetCamX - prevCamX) * 0.1;
-        return Math.max(0, newCamX); // prevent camera from going left of the start
-    });
-
-    draw();
+    draw(); // Call draw regardless of game state
     gameFrameRef.current = requestAnimationFrame(gameLoop);
   }, [player, keys, gameOver, score, cameraX, resetGame]);
   
@@ -243,77 +225,98 @@ const SuperJumpQuest = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    // Responsive canvas sizing
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    if (canvas.width !== rect.width * dpr || canvas.height !== rect.height * dpr) {
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-        ctx.scale(dpr, dpr);
+    // --- Responsive Scaling & Letterboxing ---
+    const { width: cssWidth, height: cssHeight } = canvas.getBoundingClientRect();
+    if (canvas.width !== cssWidth || canvas.height !== cssHeight) {
+        canvas.width = cssWidth;
+        canvas.height = cssHeight;
     }
 
-    // --- Clear and draw background ---
-    ctx.fillStyle = '#70c5ce'; // Sky blue
+    const scale = Math.min(canvas.width / GAME_WIDTH, canvas.height / GAME_HEIGHT);
+    const offsetX = (canvas.width - GAME_WIDTH * scale) / 2;
+    const offsetY = (canvas.height - GAME_HEIGHT * scale) / 2;
+
+    ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.save();
-    ctx.translate(-cameraX, 0);
-
-    // --- Draw platforms ---
-    level.forEach(platform => {
-      ctx.fillStyle = '#e69500'; // Platform top
-      ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-      ctx.fillStyle = '#a16600'; // Platform side
-      ctx.fillRect(platform.x, platform.y + 10, platform.width, platform.height - 10);
-    });
-
-    // --- Draw coins ---
-    coins.forEach(coin => {
-        if (!coin.collected) {
-            ctx.fillStyle = '#ffd700';
-            ctx.beginPath();
-            ctx.arc(coin.x + coin.width / 2, coin.y + coin.height / 2, coin.width / 2, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#e6c300';
-            ctx.beginPath();
-            ctx.arc(coin.x + coin.width / 2, coin.y + coin.height / 2, coin.width / 3, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    });
     
-    // --- Draw enemies ---
-    enemies.forEach(enemy => {
-        if(!enemy.isDefeated) {
-            ctx.fillStyle = '#c0392b'; // Enemy color
-            ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-            // Eyes
-            ctx.fillStyle = 'white';
-            const eyeX1 = enemy.direction > 0 ? enemy.x + enemy.width * 0.6 : enemy.x + enemy.width * 0.2;
-            const eyeX2 = enemy.direction > 0 ? enemy.x + enemy.width * 0.8 : enemy.x + enemy.width * 0.4;
-            ctx.fillRect(eyeX1 - 2, enemy.y + 8, 4, 4);
-            ctx.fillRect(eyeX2 - 2, enemy.y + 8, 4, 4);
-        }
-    });
+    ctx.save();
+    ctx.translate(offsetX, offsetY);
+    ctx.scale(scale, scale);
 
-    // --- Draw player ---
-    if (playerImage) {
-        ctx.drawImage(playerImage, player.x, player.y, player.width, player.height);
+    // --- Clear and draw game background ---
+    ctx.fillStyle = '#70c5ce'; // Sky blue
+    ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+    // --- Draw game elements or game over screen ---
+    if (gameOver) {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+      ctx.fillStyle = 'white';
+      ctx.font = '48px "Press Start 2P", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Game Over', GAME_WIDTH / 2, GAME_HEIGHT / 2 - 40);
+      ctx.font = '24px "Press Start 2P", sans-serif';
+      ctx.fillText(`Final Score: ${score}`, GAME_WIDTH / 2, GAME_HEIGHT / 2 + 10);
+      ctx.fillText('Press Space to Restart', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 60);
     } else {
-        // Fallback drawing if image is not loaded
-        ctx.fillStyle = '#e74c3c'; // Player color
-        ctx.fillRect(player.x, player.y, player.width, player.height);
-        // Player details
-        ctx.fillStyle = '#3498db'; // Overalls
-        ctx.fillRect(player.x + 4, player.y + player.height / 2, player.width - 8, player.height / 2 - 4);
+      ctx.save();
+      ctx.translate(-cameraX, 0);
+
+      // --- Draw platforms ---
+      level.forEach(platform => {
+        ctx.fillStyle = '#e69500';
+        ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+        ctx.fillStyle = '#a16600';
+        ctx.fillRect(platform.x, platform.y + 10, platform.width, platform.height - 10);
+      });
+
+      // --- Draw coins ---
+      coins.forEach(coin => {
+          if (!coin.collected) {
+              ctx.fillStyle = '#ffd700';
+              ctx.beginPath();
+              ctx.arc(coin.x + coin.width / 2, coin.y + coin.height / 2, coin.width / 2, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.fillStyle = '#e6c300';
+              ctx.beginPath();
+              ctx.arc(coin.x + coin.width / 2, coin.y + coin.height / 2, coin.width / 3, 0, Math.PI * 2);
+              ctx.fill();
+          }
+      });
+      
+      // --- Draw enemies ---
+      enemies.forEach(enemy => {
+          if(!enemy.isDefeated) {
+              ctx.fillStyle = '#c0392b';
+              ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+              ctx.fillStyle = 'white';
+              const eyeX1 = enemy.direction > 0 ? enemy.x + enemy.width * 0.6 : enemy.x + enemy.width * 0.2;
+              const eyeX2 = enemy.direction > 0 ? enemy.x + enemy.width * 0.8 : enemy.x + enemy.width * 0.4;
+              ctx.fillRect(eyeX1 - 2, enemy.y + 8, 4, 4);
+              ctx.fillRect(eyeX2 - 2, enemy.y + 8, 4, 4);
+          }
+      });
+
+      // --- Draw player ---
+      if (playerImage) {
+          ctx.drawImage(playerImage, player.x, player.y, player.width, player.height);
+      } else {
+          ctx.fillStyle = '#e74c3c';
+          ctx.fillRect(player.x, player.y, player.width, player.height);
+          ctx.fillStyle = '#3498db';
+          ctx.fillRect(player.x + 4, player.y + player.height / 2, player.width - 8, player.height / 2 - 4);
+      }
+      
+      ctx.restore(); // Restore from camera translation
+      
+      // --- Draw HUD ---
+      ctx.fillStyle = 'white';
+      ctx.font = '24px "Press Start 2P", sans-serif';
+      ctx.fillText(`Score: ${score}`, 20, 40);
     }
     
-
-    ctx.restore();
-    
-    // --- Draw HUD ---
-    ctx.fillStyle = 'white';
-    ctx.font = '24px "Press Start 2P", sans-serif';
-    ctx.fillText(`Score: ${score}`, 20, 40);
+    ctx.restore(); // Restore from responsive scaling
   };
   
   useEffect(() => {
@@ -323,7 +326,33 @@ const SuperJumpQuest = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 p-4 font-mono">
-      <h1 className="text-4xl text-white mb-4 font-bold" style={{fontFamily: '"Press Start 2P", cursive'}}>Mario test</h1>
+      <div className="w-full max-w-4xl flex justify-between items-center mb-4">
+        <a
+            href="/"
+            title="Back to Resume"
+            className="text-white bg-gray-700 hover:bg-gray-600 rounded-full p-2 transition-colors"
+          >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back
+        </a>
+
+        <h1
+          className="text-2xl md:text-4xl text-white font-bold text-center flex-1"
+          style={{ fontFamily: '"Press Start 2P", cursive' }}
+        >
+          Mario test
+        </h1>
+      </div>
+
       <div className="w-full max-w-4xl aspect-video bg-black rounded-lg shadow-2xl overflow-hidden">
         <canvas ref={canvasRef} className="w-full h-full" />
       </div>
@@ -335,6 +364,4 @@ const SuperJumpQuest = () => {
 };
 
 export default SuperJumpQuest;
-
-
 

@@ -1,24 +1,29 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
 
+// Initialize the Inter font from Google Fonts
+const inter = Inter({ subsets: ['latin'] });
+
+// Define metadata for the site (good for SEO)
 export const metadata: Metadata = {
-  title: "Super Jump Quest",
-  description: "A fun platformer game built with Next.js",
+  title: 'John Doe - Creative Developer',
+  description: 'Portfolio and game project for John Doe, a creative web and game developer.',
 };
 
+// Define the RootLayout component
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <head>
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
-      </head>
-      <body>{children}</body>
+      {/* Apply the Inter font class to the body */}
+      <body className={inter.className}>
+        {/* 'children' will be the content of the currently active page */}
+        {children}
+      </body>
     </html>
   );
 }
