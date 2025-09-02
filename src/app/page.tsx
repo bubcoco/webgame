@@ -1,6 +1,7 @@
 import React from 'react';
 import { Github, Linkedin, Mail, Gamepad2 } from 'lucide-react';
 import './globals.css';
+import ConnectWallet from '@/components/connectWallet';
 
 const HomePage = () => {
   return (
@@ -21,6 +22,7 @@ const HomePage = () => {
             <a href="https://www.linkedin.com/in/bubblexyz/" className="text-gray-400 hover:text-cyan-400 transition-colors duration-300"><Linkedin size={28} /></a>
             <a href="#" className="text-gray-400 hover:text-cyan-400 transition-colors duration-300"><Mail size={28} />bulletflip22@gmail.com</a>
           </div>
+          <ConnectWallet />
         </header>
 
         {/* --- About Me Section --- */}
@@ -63,7 +65,7 @@ const HomePage = () => {
 
         {/* --- Footer --- */}
         <footer className="text-center mt-12 text-gray-500">
-          <p>&copy; 2025 John Doe. All rights reserved.</p>
+          <p>&copy; 2025 Bub Tinnapat. All rights reserved.</p>
         </footer>
 
       </main>

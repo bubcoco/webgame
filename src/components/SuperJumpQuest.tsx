@@ -4,10 +4,24 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_SPEED, JUMP_FORCE, GRAVITY, TILE_SIZE } from '../lib/constants';
 import { Keys, Player, Platform, Coin, Enemy } from '../lib/types';
 
+declare global {
+    interface Window {
+        ethereum?: any;
+        ethers?: any;
+    }
+}
 
 // --- Game Resolution ---
 export const GAME_WIDTH = 1024;
 export const GAME_HEIGHT = 576; // 16:9 aspect ratio
+
+// --- Button configuration for Game Over screen ---
+const EARN_BUTTON = {
+    width: 250,
+    height: 60,
+    x: GAME_WIDTH / 2 - 125,
+    y: GAME_HEIGHT / 2 + 110,
+};
 
 const SuperJumpQuest = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -46,6 +60,106 @@ const SuperJumpQuest = () => {
   const gameFrameRef = useRef<number>(0);
   const [playerImage, setPlayerImage] = useState<HTMLImageElement | null>(null);
 
+  // --- Ethers.js State ---
+  const [provider, setProvider] = useState<any | null>(null); // Use 'any' for provider
+  const [signer, setSigner] = useState<any | null>(null); // Use 'any' for signer
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [isClaiming, setIsClaiming] = useState(false);
+  const [isEthersReady, setIsEthersReady] = useState(false);
+
+  // --- Load Ethers.js from CDN ---
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js';
+    script.async = true;
+    script.onload = () => {
+        console.log('ethers.js has been loaded from CDN.');
+        setIsEthersReady(true);
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      // Clean up the script when the component unmounts
+      document.body.removeChild(script);
+    };
+  }, []);
+
+
+  // --- Wallet Connection Logic ---
+  const connectWallet = async () => {
+    if (!isEthersReady) {
+        alert('Web3 provider is not ready yet. Please try again in a moment.');
+        return;
+    }
+    if (typeof window.ethereum !== 'undefined') {
+      try {
+        const ethProvider = new window.ethers.BrowserProvider(window.ethereum);
+        const ethSigner = await ethProvider.getSigner();
+        const address = await ethSigner.getAddress();
+        
+
+        setProvider(ethProvider);
+        setSigner(ethSigner);
+        setWalletAddress(address);
+      } catch (error) {
+        console.error("Failed to connect wallet:", error);
+        alert("Failed to connect wallet. Please ensure MetaMask is installed and unlocked.");
+      }
+    } else {
+      alert("MetaMask is not installed. Please install it to use this feature.");
+    }
+  };
+
+  // --- Smart Contract Interaction ---
+  const handleEarnTokens = useCallback(async () => {
+    if (!signer || score <= 0 || isClaiming) {
+        alert("Please connect your wallet. You can only earn tokens if your score is above zero.");
+        return;
+    }
+
+    setIsClaiming(true);
+    alert(`This is a simulation.\nIn a real app, this would trigger a smart contract transaction to mint you ${score} GameTokens.`);
+
+    // --- REAL SMART CONTRACT INTERACTION (EXAMPLE) ---
+    // This part is for demonstration. To make it work, you would need:
+    // 1. A deployed smart contract (e.g., an ERC-20 or ERC-1155 token).
+    // 2. The contract's ABI (Application Binary Interface).
+    // 3. A backend service to securely authorize claims to prevent cheating.
+
+    /*
+    const contractAddress = 'YOUR_DEPLOYED_CONTRACT_ADDRESS';
+    const contractABI = [
+      // ... your contract's ABI, e.g., 'function mintTokens(uint256 amount)'
+    ];
+
+    try {
+      const gameTokenContract = new window.ethers.Contract(contractAddress, contractABI, signer);
+      
+      const amountToMint = window.ethers.parseUnits(score.toString(), 18); // Assumes 18 decimal places
+
+      console.log(`Attempting to mint ${score} tokens...`);
+      const tx = await gameTokenContract.mintTokens(amountToMint);
+      
+      await tx.wait(); // Wait for the transaction to be mined
+
+      alert(`Successfully minted ${score} tokens!`);
+      
+    } catch (error) {
+      console.error("Minting failed:", error);
+      alert("There was an error processing your transaction.");
+    } finally {
+        setIsClaiming(false);
+    }
+    */
+   
+    // For simulation purposes:
+    setTimeout(() => {
+        setIsClaiming(false);
+        alert("Simulated transaction complete!");
+    }, 2000);
+
+  }, [signer, score, isClaiming]);
+
   // --- Load Player Image ---
   useEffect(() => {
     const img = new Image();
@@ -83,7 +197,7 @@ const SuperJumpQuest = () => {
     setGameOver(false);
   }, [coins, enemies]);
 
-  // --- Keyboard Handlers ---
+  // --- Keyboard & Mouse Handlers ---
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
@@ -97,15 +211,42 @@ const SuperJumpQuest = () => {
     const handleKeyUp = (e: KeyboardEvent) => {
       setKeys((prev) => ({ ...prev, [e.code]: false }));
     };
+    
+    const handleCanvasClick = (event: MouseEvent) => {
+        if (!gameOver || !canvasRef.current) return;
+
+        const canvas = canvasRef.current;
+        const rect = canvas.getBoundingClientRect();
+        
+        // --- Calculate scale and offsets for accurate click detection ---
+        const scale = Math.min(rect.width / GAME_WIDTH, rect.height / GAME_HEIGHT);
+        const offsetX = (rect.width - GAME_WIDTH * scale) / 2;
+        const offsetY = (rect.height - GAME_HEIGHT * scale) / 2;
+
+        const clickX = (event.clientX - rect.left - offsetX) / scale;
+        const clickY = (event.clientY - rect.top - offsetY) / scale;
+
+        // Check if the click is within the button bounds
+        if (
+            clickX >= EARN_BUTTON.x &&
+            clickX <= EARN_BUTTON.x + EARN_BUTTON.width &&
+            clickY >= EARN_BUTTON.y &&
+            clickY <= EARN_BUTTON.y + EARN_BUTTON.height
+        ) {
+            handleEarnTokens();
+        }
+    };
 
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    canvasRef.current?.addEventListener('click', handleCanvasClick);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      canvasRef.current?.removeEventListener('click', handleCanvasClick);
     };
-  }, [gameOver, resetGame]);
+  }, [gameOver, resetGame, handleEarnTokens]);
 
 
   // --- Game Loop ---
@@ -255,10 +396,29 @@ const SuperJumpQuest = () => {
       ctx.font = '48px "Press Start 2P", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('Game Over', GAME_WIDTH / 2, GAME_HEIGHT / 2 - 40);
+      ctx.fillText('Game Over', GAME_WIDTH / 2, GAME_HEIGHT / 2 - 60);
       ctx.font = '24px "Press Start 2P", sans-serif';
-      ctx.fillText(`Final Score: ${score}`, GAME_WIDTH / 2, GAME_HEIGHT / 2 + 10);
-      ctx.fillText('Press Space to Restart', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 60);
+      ctx.fillText(`Final Score: ${score}`, GAME_WIDTH / 2, GAME_HEIGHT / 2 - 10);
+      ctx.fillText('Press Space to Restart', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 40);
+
+      // --- Draw "Earn Token" Button ---
+      if (walletAddress) {
+        ctx.fillStyle = isClaiming ? '#4a5568' : '#2d8540'; // Gray when claiming, green otherwise
+        ctx.fillRect(EARN_BUTTON.x, EARN_BUTTON.y, EARN_BUTTON.width, EARN_BUTTON.height);
+        
+        ctx.fillStyle = 'white';
+        ctx.font = '22px "Press Start 2P", sans-serif';
+        ctx.fillText(
+          isClaiming ? 'Claiming...' : 'Earn Tokens',
+          GAME_WIDTH / 2,
+          GAME_HEIGHT / 2 + 145
+        );
+      } else {
+          ctx.font = '16px "Press Start 2P", sans-serif';
+          ctx.fillStyle = '#cbd5e0';
+          ctx.fillText('Connect Wallet to Earn Tokens', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 145);
+      }
+
     } else {
       ctx.save();
       ctx.translate(-cameraX, 0);
@@ -316,7 +476,7 @@ const SuperJumpQuest = () => {
       ctx.fillText(`Score: ${score}`, 20, 40);
     }
     
-    ctx.restore(); // Restore from responsive scaling
+      ctx.restore(); // Restore from responsive scaling
   };
   
   useEffect(() => {
@@ -330,7 +490,7 @@ const SuperJumpQuest = () => {
         <a
             href="/"
             title="Back to Resume"
-            className="text-white bg-gray-700 hover:bg-gray-600 rounded-full p-2 transition-colors"
+            className="text-white bg-gray-700 hover:bg-gray-600 rounded-full p-2 transition-colors flex items-center"
           >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -342,7 +502,7 @@ const SuperJumpQuest = () => {
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Back
+          <span className="ml-2">Back</span>
         </a>
 
         <h1
@@ -351,6 +511,18 @@ const SuperJumpQuest = () => {
         >
           Mario test
         </h1>
+        
+        <div className="w-48 text-right">
+            {walletAddress ? (
+                <div className="bg-gray-700 text-white text-sm p-2 rounded-lg shadow-md truncate">
+                    {`${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}`}
+                </div>
+            ) : (
+                <button onClick={connectWallet} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">
+                    Connect
+                </button>
+            )}
+        </div>
       </div>
 
       <div className="w-full max-w-4xl aspect-video bg-black rounded-lg shadow-2xl overflow-hidden">

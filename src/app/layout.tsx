@@ -7,8 +7,8 @@ const inter = Inter({ subsets: ['latin'] });
 
 // Define metadata for the site (good for SEO)
 export const metadata: Metadata = {
-  title: 'John Doe - Creative Developer',
-  description: 'Portfolio and game project for John Doe, a creative web and game developer.',
+  title: 'Bub Tinnapat - Software Developer',
+  description: 'Portfolio and game project for Bub Tinnapat, a creative web and game developer.',
 };
 
 // Define the RootLayout component
