@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Github, Linkedin, Mail, Gamepad2, Code, Sparkles, ArrowRight, Rocket, Database, Cloud, Server } from 'lucide-react';
+import EmailCopy from '@/components/clickTocopyEmail';
 
 const HomePage = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -10,7 +11,7 @@ const HomePage = () => {
   useEffect(() => {
     setIsVisible(true);
     
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (e: any) => {
       setMousePosition({
         x: (e.clientX / window.innerWidth - 0.5) * 20,
         y: (e.clientY / window.innerHeight - 0.5) * 20
@@ -248,7 +249,7 @@ const HomePage = () => {
               <span style={{ fontSize: '0.875rem' }}>LinkedIn</span>
             </a>
             <a 
-              href="mailto:tinnapat.jaimunt@gmail.com"
+              // href="mailto:tinnapat.jaimunt@gmail.com"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -269,8 +270,9 @@ const HomePage = () => {
                 e.currentTarget.style.transform = 'scale(1)';
               }}
             >
-              <Mail size={20} />
-              <span style={{ fontSize: '0.875rem' }}>Email</span>
+              {/* <Mail size={20} />
+              <span style={{ fontSize: '0.875rem'}}>Email :tinnapat.jaimunt@gmail.com</span> */}
+              <EmailCopy />
             </a>
           </div>
 
