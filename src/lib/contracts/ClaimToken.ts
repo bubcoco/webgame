@@ -10,7 +10,7 @@ const contractABI = [
   "event TokensMinted(address indexed player, uint256 coins, uint256 tokens, bytes32 sessionId)"
 ];
 
-const contractAddress = '0x...'; 
+const contractAddress = '0xE9764543bF2E5a266dD6b36E23f9875B3cF6e3c5'; 
 
 interface ClaimTokenParams {
   score: number;
@@ -75,7 +75,7 @@ export async function claimTokens({
   setIsClaiming
 }: ClaimTokenParams): Promise<boolean> {
   
-  if (!contractAddress || contractAddress === '0x...') {
+  if (!contractAddress || contractAddress === '0xE9764543bF2E5a266dD6b36E23f9875B3cF6e3c5') {
     alert('Contract address not configured. Please deploy the contract first.');
     return false;
   }

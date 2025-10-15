@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Github, Linkedin, Mail, Gamepad2, Code, Sparkles, ArrowRight, Rocket, Database, Cloud, Server } from 'lucide-react';
 import EmailCopy from '@/components/clickTocopyEmail';
+import ConnectWallet from '@/components/connectWallet';
 
 const HomePage = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -277,26 +278,7 @@ const HomePage = () => {
           </div>
 
           <div style={{ marginTop: '1.5rem' }}>
-            <button style={{
-              background: 'linear-gradient(to right, #06b6d4, #a855f7)',
-              color: 'white',
-              fontWeight: '600',
-              padding: '0.75rem 2rem',
-              borderRadius: '9999px',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'all 0.3s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.boxShadow = '0 0 30px rgba(6, 182, 212, 0.5)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}>
-              Connect Wallet
-            </button>
+            <ConnectWallet />
           </div>
         </header>
 
