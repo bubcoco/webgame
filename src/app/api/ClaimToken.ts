@@ -27,3 +27,5 @@
     } finally {
         setIsClaiming(false);
     }
+
+export { };
