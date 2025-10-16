@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { ClaimResponse } from '../types';
 
 // Mario Game Token Contract ABI (only the functions we need)
 const contractABI = [
@@ -73,16 +74,18 @@ export async function claimTokens({
   playerAddress,
   signer,
   setIsClaiming
-}: ClaimTokenParams): Promise<boolean> {
+}: ClaimTokenParams): Promise<ClaimResponse> {
   
   if (!contractAddress || contractAddress === '0xE9764543bF2E5a266dD6b36E23f9875B3cF6e3c5') {
-    alert('Contract address not configured. Please deploy the contract first.');
-    return false;
+    // alert('Contract address not configured. Please deploy the contract first.');
+    // return false;
+    return { success: false, error: 'Contract address not configured. Please deploy the contract first.' };
   }
 
   if (score <= 0) {
-    alert('You need to collect at least 1 coin to claim tokens!');
-    return false;
+    // alert('You need to collect at least 1 coin to claim tokens!');
+    // return false;
+    return { success: false, error: 'You need to collect at least 1 coin to claim tokens!' };
   }
 
   setIsClaiming(true);
@@ -96,13 +99,14 @@ export async function claimTokens({
 
     // Step 1: Verify with backend (optional but HIGHLY recommended for production)
     // Uncomment this in production to prevent cheating
-    /*
+    
     const verification = await verifyClaimWithBackend(playerAddress, score, sessionId);
     if (!verification.valid) {
-      alert('Score verification failed. Please try again.');
-      return false;
+      // alert('Score verification failed. Please try again.');
+      // return false;
+      return { success: false, error: 'Score verification failed. Please try again.' };
     }
-    */
+    
 
     // Step 2: Connect to the contract
     const gameTokenContract = new ethers.Contract(
@@ -140,27 +144,42 @@ export async function claimTokens({
     console.log('Balance after claim:', ethers.formatEther(balanceAfter), 'MARIO');
     console.log('Tokens earned:', ethers.formatEther(tokensEarned), 'MARIO');
 
-    alert(`Successfully claimed ${ethers.formatEther(tokensEarned)} MARIO tokens!`);
+    // alert(`Successfully claimed ${ethers.formatEther(tokensEarned)} MARIO tokens!`);
     
-    return true;
+    // return true;
+    return {
+      success: true,
+      txHash: receipt.transactionHash,
+      tokens: Number(ethers.formatEther(tokensEarned))
+    };
 
   } catch (error: any) {
     console.error('Claim failed:', error);
     
     // Handle specific errors
+    // if (error.code === 'ACTION_REJECTED') {
+    //   alert('Transaction was rejected by user.');
+    // } else if (error.message.includes('Only game admins')) {
+    //   alert('Error: Only authorized game admins can mint tokens. Please contact support.');
+    // } else if (error.message.includes('Session already claimed')) {
+    //   alert('This game session has already been claimed!');
+    // } else if (error.message.includes('insufficient funds')) {
+    //   alert('Insufficient funds for gas fees. Please add some ETH to your wallet.');
+    // } else {
+    //   alert('Transaction failed. Please try again or check console for details.');
+    // }
+    let errorMsg = 'Transaction failed. Please try again.';
     if (error.code === 'ACTION_REJECTED') {
-      alert('Transaction was rejected by user.');
-    } else if (error.message.includes('Only game admins')) {
-      alert('Error: Only authorized game admins can mint tokens. Please contact support.');
-    } else if (error.message.includes('Session already claimed')) {
-      alert('This game session has already been claimed!');
-    } else if (error.message.includes('insufficient funds')) {
-      alert('Insufficient funds for gas fees. Please add some ETH to your wallet.');
-    } else {
-      alert('Transaction failed. Please try again or check console for details.');
+      errorMsg = 'Transaction was rejected by user.';
+    } else if (error.message?.includes('Only game admins')) {
+      errorMsg = 'Only authorized game admins can mint tokens.';
+    } else if (error.message?.includes('Session already claimed')) {
+      errorMsg = 'This game session has already been claimed.';
+    } else if (error.message?.includes('insufficient funds')) {
+      errorMsg = 'Insufficient funds for gas fees.';
     }
     
-    return false;
+    return { success: false, error: errorMsg };
 
   } finally {
     setIsClaiming(false);
