@@ -1,10 +1,10 @@
+// src/components/SuperJumpQuest.tsx
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_SPEED, JUMP_FORCE, GRAVITY, TILE_SIZE } from '@/lib/constants';
 import { Keys, Player, Platform, Coin, Enemy } from '@/lib/types';
 
-// --- Game Resolution ---
 export const GAME_WIDTH = 1024;
 export const GAME_HEIGHT = 576;
 
@@ -22,6 +22,8 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
   showWalletButton = true 
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const hasCalledOnGameEnd = useRef(false); // Add this to prevent double calls
+  
   const [keys, setKeys] = useState<Keys>({
     ArrowRight: false,
     ArrowLeft: false,
@@ -57,7 +59,6 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
   const gameFrameRef = useRef<number>(0);
   const [playerImage, setPlayerImage] = useState<HTMLImageElement | null>(null);
 
-  // --- Load Player Image ---
   useEffect(() => {
     const img = new Image();
     img.src = '/images/player.png';
@@ -90,16 +91,18 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
     setScore(0);
     setCameraX(0);
     setGameOver(false);
+    hasCalledOnGameEnd.current = false; // Reset the flag
   }, [coins, enemies]);
 
-  // --- Notify parent when game ends ---
+  // ONLY ONE useEffect for game end - Remove the duplicate one!
   useEffect(() => {
-    if (gameOver && score > 0 && onGameEnd) {
+    if (gameOver && score > 0 && onGameEnd && !hasCalledOnGameEnd.current) {
+      console.log('🎯 Calling onGameEnd with score:', score);
+      hasCalledOnGameEnd.current = true; // Set flag to prevent double calls
       onGameEnd(score);
     }
   }, [gameOver, score, onGameEnd]);
 
-  // --- Keyboard Handlers ---
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
@@ -124,7 +127,6 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
     };
   }, [gameOver, resetGame]);
 
-  // --- Game Loop ---
   const gameLoop = useCallback(() => {
     if (!gameOver) {
       setPlayer(p => {
@@ -144,7 +146,6 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
         let newY = p.y + newVy;
         let newOnGround = false;
 
-        // Collision with platforms
         level.forEach(platform => {
           if (p.x < platform.x + platform.width &&
               p.x + p.width > platform.x &&
@@ -158,7 +159,6 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
           }
         });
         
-        // --- Enemy Logic ---
         setEnemies(prevEnemies => prevEnemies.map(enemy => {
           if (enemy.isDefeated) return enemy;
           
@@ -199,7 +199,6 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
           return { ...enemy, x: newEnemyX, direction: newDirection };
         }));
 
-        // --- Coin Collection ---
         setCoins(prevCoins => prevCoins.map(coin => {
           if (!coin.collected &&
               newX < coin.x + coin.width &&
@@ -223,7 +222,6 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
         return { ...p, x: newX, y: newY, vx: newVx, vy: newVy, isJumping: newIsJumping, onGround: newOnGround };
       });
       
-      // Update Camera
       setCameraX(prevCamX => {
         const targetCamX = player.x - 300;
         const newCamX = prevCamX + (targetCamX - prevCamX) * 0.1;
@@ -235,14 +233,12 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
     gameFrameRef.current = requestAnimationFrame(gameLoop);
   }, [player, keys, gameOver, score, cameraX]);
 
-  // --- Drawing ---
   const draw = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    // --- Responsive Scaling & Letterboxing ---
     const { width: cssWidth, height: cssHeight } = canvas.getBoundingClientRect();
     if (canvas.width !== cssWidth || canvas.height !== cssHeight) {
       canvas.width = cssWidth;
@@ -260,11 +256,9 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
     ctx.translate(offsetX, offsetY);
     ctx.scale(scale, scale);
 
-    // --- Clear and draw game background ---
     ctx.fillStyle = '#70c5ce';
     ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-    // --- Draw game elements or game over screen ---
     if (gameOver) {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
       ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
@@ -277,7 +271,6 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
       ctx.fillText(`Final Score: ${score}`, GAME_WIDTH / 2, GAME_HEIGHT / 2 - 10);
       ctx.fillText('Press Space to Restart', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 40);
 
-      // Show instruction to claim tokens outside canvas
       if (score > 0) {
         ctx.font = '16px "Press Start 2P", sans-serif';
         ctx.fillStyle = '#ffd700';
@@ -288,7 +281,6 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
       ctx.save();
       ctx.translate(-cameraX, 0);
 
-      // --- Draw platforms ---
       level.forEach(platform => {
         ctx.fillStyle = '#e69500';
         ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
@@ -296,7 +288,6 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
         ctx.fillRect(platform.x, platform.y + 10, platform.width, platform.height - 10);
       });
 
-      // --- Draw coins ---
       coins.forEach(coin => {
         if (!coin.collected) {
           ctx.fillStyle = '#ffd700';
@@ -310,7 +301,6 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
         }
       });
       
-      // --- Draw enemies ---
       enemies.forEach(enemy => {
         if(!enemy.isDefeated) {
           ctx.fillStyle = '#c0392b';
@@ -323,7 +313,6 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
         }
       });
 
-      // --- Draw player ---
       if (playerImage) {
         ctx.drawImage(playerImage, player.x, player.y, player.width, player.height);
       } else {
@@ -335,7 +324,6 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
       
       ctx.restore();
       
-      // --- Draw HUD ---
       ctx.fillStyle = 'white';
       ctx.font = '24px "Press Start 2P", sans-serif';
       ctx.fillText(`Score: ${score}`, 20, 40);
