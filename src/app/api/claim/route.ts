@@ -281,7 +281,7 @@ export async function POST(req: NextRequest) {
       tokens: score / 100,
       newBalance,
       message: `Successfully minted ${score / 100} MARIO tokens!`,
-      explorerUrl: `https://sepolia.etherscan.io/tx/${receipt.hash}`
+      explorerUrl: `https://amoy.polygonscan.com/tx/${receipt.hash}`
     });
 
   } catch (error: any) {
