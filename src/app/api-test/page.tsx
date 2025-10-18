@@ -9,7 +9,7 @@ export default function APITestPage() {
   const [loading, setLoading] = useState(false);
   
   // Test data
-  const [testAddress, setTestAddress] = useState('0x97236A4A5A3Fba78AA248C4b6130e0946Fd8421d');
+  const [testAddress, setTestAddress] = useState('0xe59e69DfC38a722F6A760D93e219306a15B1bE9b');
   const [testScore, setTestScore] = useState(200);
 
   const testGET = async () => {

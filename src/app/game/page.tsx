@@ -157,7 +157,7 @@ export default function GamePage() {
                     🪙 <span style={{ fontWeight: '700' }}>{gameScore / 100}</span> coins
                   </p>
                   <p style={{ fontSize: '18px', color: '#9ca3af' }}> {/* text-lg text-gray-400 */}
-                    = {gameScore /100} MARIO tokens
+                    = {gameScore /100} GEMS tokens
                   </p>
                 </div>
               </div>
