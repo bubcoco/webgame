@@ -1,7 +1,7 @@
-// src/app/api-test/page.tsx
 'use client';
 
 import { useState } from 'react';
+import { ethers } from 'ethers';
 
 export default function APITestPage() {
   const [getResponse, setGetResponse] = useState('');
@@ -9,7 +9,7 @@ export default function APITestPage() {
   const [loading, setLoading] = useState(false);
   
   // Test data
-  const [testAddress, setTestAddress] = useState('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb');
+  const [testAddress, setTestAddress] = useState('0x97236A4A5A3Fba78AA248C4b6130e0946Fd8421d');
   const [testScore, setTestScore] = useState(200);
 
   const testGET = async () => {
@@ -35,13 +35,21 @@ export default function APITestPage() {
     }
   };
 
+  function generateSessionId(testAddress: string, testScore: number, timestamp: number) {
+  const data = ethers.solidityPacked(
+      ['address', 'uint256', 'uint256'],
+      [testAddress, testScore, timestamp]
+    );
+    return ethers.keccak256(data);
+}
+
   const testPOST = async () => {
     setLoading(true);
     setPostResponse('Loading...');
     
     try {
       const timestamp = Date.now();
-      const sessionId = '0x' + '1'.repeat(64); // Fake session ID for testing
+      const sessionId = generateSessionId(testAddress, testScore, timestamp);
       
       const body = {
         playerAddress: testAddress,
@@ -216,3 +224,5 @@ export default function APITestPage() {
     </div>
   );
 }
+
+

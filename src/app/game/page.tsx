@@ -90,45 +90,95 @@ export default function GamePage() {
 
       {/* Claim Section - OUTSIDE SuperJumpQuest, fixed position */}
       {showClaimSection && gameScore > 0 && (
-        <div 
-          className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 via-gray-900/95 to-transparent border-t-4 border-yellow-500 p-8 shadow-2xl"
-          style={{ 
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '0px',
+            left: '0px',
+            right: '0px',
+            backgroundImage:
+              'linear-gradient(to top, rgb(17 24 39), rgba(17 24 39 / 0.95), transparent)',
+            borderTopWidth: '4px',
+            borderTopStyle: 'solid',
+            borderTopColor: '#eab308', // yellow-500
+            padding: '32px', // p-8
+            boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.25)', // shadow-2xl
             zIndex: 9999,
-            minHeight: '200px'
+            minHeight: '200px',
           }}
         >
-          
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-              
+          <div style={{ maxWidth: '1280px', marginLeft: 'auto', marginRight: 'auto' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column', // flex-col (md:flex-row is dropped)
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '32px', // gap-8
+              }}
+            >
               {/* Left - Score */}
-              <div className="text-center md:text-left bg-gray-800/50 p-6 rounded-lg">
-                <h2 
-                  className="text-4xl font-bold text-white mb-3" 
-                  style={{ fontFamily: '"Press Start 2P", cursive' }}
+              <div
+                style={{
+                  textAlign: 'center', // text-center (md:text-left is dropped)
+                  backgroundColor: 'rgba(31, 41, 55, 0.5)', // bg-gray-800/50
+                  padding: '24px', // p-6
+                  borderRadius: '8px', // rounded-lg
+                }}
+              >
+                <h2
+                  style={{
+                    fontFamily: '"Press Start 2P", cursive',
+                    fontSize: '36px', // text-4xl
+                    fontWeight: '700', // font-bold
+                    color: '#ffffff', // text-white
+                    marginBottom: '12px', // mb-3
+                  }}
                 >
                   🎮 Game Over!
                 </h2>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3 justify-center md:justify-start">
-                    <span className="text-xl text-gray-300">Score:</span>
-                    <span className="text-4xl font-bold text-yellow-400">{gameScore}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}> {/* space-y-2 */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px', // gap-3
+                      justifyContent: 'center', // justify-center (md:justify-start is dropped)
+                    }}
+                  >
+                    <span style={{ fontSize: '20px', color: '#d1d5db' }}> {/* text-xl text-gray-300 */}
+                      Score:
+                    </span>
+                    <span style={{ fontSize: '36px', fontWeight: '700', color: '#facc15' }}> {/* text-4xl font-bold text-yellow-400 */}
+                      {gameScore}
+                    </span>
                   </div>
-                  <p className="text-2xl text-green-400">
-                    🪙 <span className="font-bold">{gameScore / 100}</span> coins
+                  <p style={{ fontSize: '24px', color: '#4ade80' }}> {/* text-2xl text-green-400 */}
+                    🪙 <span style={{ fontWeight: '700' }}>{gameScore / 100}</span> coins
                   </p>
-                  <p className="text-lg text-gray-400">
-                    = {gameScore / 100} MARIO tokens
+                  <p style={{ fontSize: '18px', color: '#9ca3af' }}> {/* text-lg text-gray-400 */}
+                    = {gameScore} MARIO tokens
                   </p>
                 </div>
               </div>
 
               {/* Right - Claim Button */}
-              <div className="flex flex-col items-center gap-4 bg-gray-800/50 p-6 rounded-lg min-w-[300px]">
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '16px', // gap-4
+                  backgroundColor: 'rgba(31, 41, 55, 0.5)', // bg-gray-800/50
+                  padding: '24px', // p-6
+                  borderRadius: '8px', // rounded-lg
+                  minWidth: '300px',
+                }}
+              >
                 {walletAddress ? (
                   <>
                     <ClaimTokenButton
-                      score={gameScore / 100}
+                      score={gameScore}
                       walletAddress={walletAddress}
                       onClaimSuccess={handleClaimSuccess}
                       onClaimError={handleClaimError}
@@ -138,19 +188,42 @@ export default function GamePage() {
                         console.log('🔽 Close button clicked');
                         setShowClaimSection(false);
                       }}
-                      className="text-sm text-gray-400 hover:text-white transition underline"
+                      style={{
+                        fontSize: '14px', // text-sm
+                        color: '#9ca3af', // text-gray-400
+                        textDecoration: 'underline',
+                        transition: 'color 0.15s ease-in-out', // transition
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
                     >
                       Close
                     </button>
                   </>
                 ) : (
-                  <div className="text-center">
-                    <p className="text-white text-lg mb-4">
+                  <div style={{ textAlign: 'center' }}>
+                    <p style={{ color: '#ffffff', fontSize: '18px', marginBottom: '16px' }}> {/* text-white text-lg mb-4 */}
                       Connect wallet to claim tokens
                     </p>
                     <button
                       onClick={connectWallet}
-                      className="px-10 py-5 bg-purple-600 hover:bg-purple-700 text-white text-xl font-bold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+                      style={{
+                        paddingLeft: '40px', // px-10
+                        paddingRight: '40px',
+                        paddingTop: '20px', // py-5
+                        paddingBottom: '20px',
+                        backgroundColor: '#9333ea', // bg-purple-600
+                        color: '#ffffff', // text-white
+                        fontSize: '20px', // text-xl
+                        fontWeight: '700', // font-bold
+                        borderRadius: '8px', // rounded-lg
+                        transitionProperty: 'all', // transition-all
+                        transitionDuration: '300ms', // duration-300
+                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)', // shadow-lg
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
                     >
                       🔗 Connect Wallet
                     </button>
@@ -164,24 +237,70 @@ export default function GamePage() {
 
       {/* Debug Panel */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="fixed top-24 right-4 bg-black/90 text-white p-4 rounded-lg text-xs font-mono z-[10000] border-2 border-green-500 max-w-[250px]">
-          <h3 className="font-bold text-green-400 mb-2 text-sm">🐛 DEBUG</h3>
-          <div className="space-y-1">
+        <div
+          style={{
+            position: 'fixed',
+            top: '96px', // top-24
+            right: '16px', // right-4
+            backgroundColor: 'rgba(0, 0, 0, 0.9)', // bg-black/90
+            color: '#ffffff', // text-white
+            padding: '16px', // p-4
+            borderRadius: '8px', // rounded-lg
+            fontSize: '12px', // text-xs
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace', // font-mono
+            zIndex: 10000,
+            borderWidth: '2px', // border-2
+            borderStyle: 'solid',
+            borderColor: '#22c55e', // border-green-500
+            maxWidth: '250px',
+          }}
+        >
+          <h3
+            style={{
+              fontWeight: '700', // font-bold
+              color: '#4ade80', // text-green-400
+              marginBottom: '8px', // mb-2
+              fontSize: '14px', // text-sm
+            }}
+          >
+            🐛 DEBUG
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}> {/* space-y-1 */}
             <div>Wallet: {walletAddress ? '✅' : '❌'}</div>
             <div>Addr: {walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : 'None'}</div>
             <div>Score: {gameScore}</div>
             <div>Coins: {gameScore / 100}</div>
-            <div className="font-bold text-yellow-300">
+            <div style={{ fontWeight: '700', color: '#fde047' }}> {/* font-bold text-yellow-300 */}
               Show Claim: {showClaimSection ? '✅ YES' : '❌ NO'}
             </div>
-            <div className="mt-2 pt-2 border-t border-gray-600">
-              <button 
+            <div
+              style={{
+                marginTop: '8px', // mt-2
+                paddingTop: '8px', // pt-2
+                borderTopWidth: '1px', // border-t
+                borderTopStyle: 'solid',
+                borderTopColor: '#4b5563', // border-gray-600
+              }}
+            >
+              <button
                 onClick={() => {
                   console.log('🔧 Manual trigger');
                   setGameScore(500);
                   setShowClaimSection(true);
                 }}
-                className="w-full px-2 py-1 bg-green-600 hover:bg-green-700 text-xs rounded text-white"
+                style={{
+                  width: '100%', // w-full
+                  paddingLeft: '8px', // px-2
+                  paddingRight: '8px',
+                  paddingTop: '4px', // py-1
+                  paddingBottom: '4px',
+                  backgroundColor: '#16a34a', // bg-green-600
+                  fontSize: '12px', // text-xs
+                  borderRadius: '4px', // rounded
+                  color: '#ffffff', // text-white
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
               >
                 Force Show (500)
               </button>
@@ -202,7 +321,7 @@ export default function GamePage() {
             opacity: 1;
           }
         }
-        
+
         .animate-slide-up {
           animation: slideUp 0.3s ease-out;
         }

@@ -117,7 +117,7 @@ export default function ClaimTokenButton({
 
       {status === 'success' && txHash && (
         <a
-          href={`https://sepolia.etherscan.io/tx/${txHash}`}
+          href={`https://amoy.polygonscan.com/tx/${txHash}`}
           target="_blank"
           rel="noopener noreferrer"
           className="text-xs text-blue-400 hover:text-blue-300 underline"
