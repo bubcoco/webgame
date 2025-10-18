@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_SPEED, JUMP_FORCE, GRAVITY, TILE_SIZE } from '@/lib/constants';
 import { Keys, Player, Platform, Coin, Enemy } from '@/lib/types';
+import { generateMixedCoins } from '@/lib/gameUtils';
 
 export const GAME_WIDTH = 1024;
 export const GAME_HEIGHT = 576;
@@ -22,7 +23,7 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
   showWalletButton = true 
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const hasCalledOnGameEnd = useRef(false); // Add this to prevent double calls
+  const hasCalledOnGameEnd = useRef(false);
   
   const [keys, setKeys] = useState<Keys>({
     ArrowRight: false,
@@ -41,12 +42,18 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
     onGround: false,
   });
 
-  const [coins, setCoins] = useState<Coin[]>([
-      { x: 200, y: 300, width: 20, height: 20, collected: false },
-      { x: 450, y: 200, width: 20, height: 20, collected: false },
-      { x: 700, y: 350, width: 20, height: 20, collected: false },
-      { x: 950, y: 150, width: 20, height: 20, collected: false },
-  ]);
+  // Define level platforms first
+  const level: Platform[] = [
+    { x: 0, y: 500, width: 1600, height: 100 },
+    { x: 150, y: 400, width: 150, height: TILE_SIZE },
+    { x: 400, y: 300, width: 200, height: TILE_SIZE },
+    { x: 700, y: 400, width: 100, height: TILE_SIZE },
+    { x: 900, y: 250, width: 150, height: TILE_SIZE },
+    { x: 1200, y: 350, width: 200, height: TILE_SIZE },
+  ];
+
+  // Generate random coins on mount
+  const [coins, setCoins] = useState<Coin[]>([]);
   
   const [enemies, setEnemies] = useState<Enemy[]>([
       { x: 500, y: 460 - 30, width: 30, height: 30, vx: 1, direction: 1, isDefeated: false },
@@ -59,6 +66,13 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
   const gameFrameRef = useRef<number>(0);
   const [playerImage, setPlayerImage] = useState<HTMLImageElement | null>(null);
 
+  // Initialize coins on component mount
+  useEffect(() => {
+    const randomCoins = generateMixedCoins(level);
+    setCoins(randomCoins);
+    console.log(`🎮 Game started with ${randomCoins.length} coins`);
+  }, []);
+
   useEffect(() => {
     const img = new Image();
     img.src = '/images/player.png';
@@ -66,16 +80,10 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
     img.onerror = () => console.error("Failed to load player image.");
   }, []);
 
-  const level: Platform[] = [
-    { x: 0, y: 500, width: 1600, height: 100 },
-    { x: 150, y: 400, width: 150, height: TILE_SIZE },
-    { x: 400, y: 300, width: 200, height: TILE_SIZE },
-    { x: 700, y: 400, width: 100, height: TILE_SIZE },
-    { x: 900, y: 250, width: 150, height: TILE_SIZE },
-    { x: 1200, y: 350, width: 200, height: TILE_SIZE },
-  ];
-
   const resetGame = useCallback(() => {
+    // Generate NEW random coins on reset
+    const newCoins = generateMixedCoins(level);
+    
     setPlayer({
       x: 100,
       y: 200,
@@ -86,19 +94,20 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
       isJumping: false,
       onGround: false,
     });
-    setCoins(coins.map(c => ({ ...c, collected: false })));
+    setCoins(newCoins);
     setEnemies(enemies.map(e => ({ ...e, isDefeated: false, x: e.x < 800 ? 500 : 1000, direction: e.direction })));
     setScore(0);
     setCameraX(0);
     setGameOver(false);
-    hasCalledOnGameEnd.current = false; // Reset the flag
-  }, [coins, enemies]);
+    hasCalledOnGameEnd.current = false;
+    
+    console.log(`🔄 Game reset with ${newCoins.length} new coins`);
+  }, [enemies, level]);
 
-  // ONLY ONE useEffect for game end - Remove the duplicate one!
   useEffect(() => {
     if (gameOver && score > 0 && onGameEnd && !hasCalledOnGameEnd.current) {
       console.log('🎯 Calling onGameEnd with score:', score);
-      hasCalledOnGameEnd.current = true; // Set flag to prevent double calls
+      hasCalledOnGameEnd.current = true;
       onGameEnd(score);
     }
   }, [gameOver, score, onGameEnd]);
@@ -327,6 +336,12 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
       ctx.fillStyle = 'white';
       ctx.font = '24px "Press Start 2P", sans-serif';
       ctx.fillText(`Score: ${score}`, 20, 40);
+      
+      // Show coin count
+      const collectedCoins = coins.filter(c => c.collected).length;
+      const totalCoins = coins.length;
+      ctx.font = '16px "Press Start 2P", sans-serif';
+      ctx.fillText(`Coins: ${collectedCoins}/${totalCoins}`, 20, 70);
     }
     
     ctx.restore();
@@ -389,6 +404,9 @@ const SuperJumpQuest: React.FC<SuperJumpQuestProps> = ({
       
       <div className="text-white mt-4 text-center">
         <p><span className="font-bold">Controls:</span> Arrow Keys to Move, Spacebar to Jump</p>
+        <p className="text-sm text-gray-400 mt-1">
+          Collect all coins! Each game has a random number of coins (8-20)
+        </p>
       </div>
     </div>
   );
