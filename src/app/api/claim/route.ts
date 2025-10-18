@@ -1,6 +1,8 @@
 // src/app/api/claim/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { ethers } from "ethers";
+import { validateClaimRequest } from "@/lib/validators";
+import * as Sentry from "@sentry/nextjs";
 
 // Configuration
 const PRIVATE_KEY = process.env.GAME_ADMIN_PRIVATE_KEY!;
@@ -11,7 +13,7 @@ const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS!;
 const contractABI = [
   "function mintReward(address player, uint256 coinsCollected, bytes32 sessionId) external",
   "function claimedSessions(bytes32) view returns (bool)",
-  "function balanceOf(address) view returns (uint256)"
+  "function balanceOf(address) view returns (uint256)",
 ];
 
 // Rate limiting (simple in-memory, use Redis in production)
@@ -22,7 +24,10 @@ const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in ms
 /**
  * Check rate limit for an address
  */
-function checkRateLimit(address: string): { allowed: boolean; remaining: number } {
+function checkRateLimit(address: string): {
+  allowed: boolean;
+  remaining: number;
+} {
   const now = Date.now();
   const record = rateLimitMap.get(address);
 
@@ -30,7 +35,7 @@ function checkRateLimit(address: string): { allowed: boolean; remaining: number 
     // Create new record or reset expired one
     rateLimitMap.set(address, {
       count: 1,
-      resetTime: now + RATE_LIMIT_WINDOW
+      resetTime: now + RATE_LIMIT_WINDOW,
     });
     return { allowed: true, remaining: MAX_CLAIMS_PER_HOUR - 1 };
   }
@@ -46,9 +51,13 @@ function checkRateLimit(address: string): { allowed: boolean; remaining: number 
 /**
  * Generate session ID (must match frontend)
  */
-function generateSessionId(playerAddress: string, score: number, timestamp: number): string {
+function generateSessionId(
+  playerAddress: string,
+  score: number,
+  timestamp: number
+): string {
   const data = ethers.solidityPacked(
-    ['address', 'uint256', 'uint256'],
+    ["address", "uint256", "uint256"],
     [playerAddress, score, timestamp]
   );
   return ethers.keccak256(data);
@@ -59,15 +68,15 @@ function generateSessionId(playerAddress: string, score: number, timestamp: numb
  */
 function validateScore(score: number): { valid: boolean; reason?: string } {
   if (score < 0) {
-    return { valid: false, reason: 'Score cannot be negative' };
+    return { valid: false, reason: "Score cannot be negative" };
   }
-  
+
   if (score > 10000) {
-    return { valid: false, reason: 'Score too high (possible cheat)' };
+    return { valid: false, reason: "Score too high (possible cheat)" };
   }
 
   if (score % 100 !== 0) {
-    return { valid: false, reason: 'Invalid score format' };
+    return { valid: false, reason: "Invalid score format" };
   }
 
   return { valid: true };
@@ -85,7 +94,7 @@ export async function GET(req: NextRequest) {
 
   if (!address || !score) {
     return NextResponse.json(
-      { error: "Missing required parameters: address and score" }, 
+      { error: "Missing required parameters: address and score" },
       { status: 400 }
     );
   }
@@ -93,7 +102,7 @@ export async function GET(req: NextRequest) {
   // Validate address
   if (!ethers.isAddress(address)) {
     return NextResponse.json(
-      { error: "Invalid Ethereum address" }, 
+      { error: "Invalid Ethereum address" },
       { status: 400 }
     );
   }
@@ -103,7 +112,7 @@ export async function GET(req: NextRequest) {
   const scoreValidation = validateScore(scoreNum);
   if (!scoreValidation.valid) {
     return NextResponse.json(
-      { error: scoreValidation.reason }, 
+      { error: scoreValidation.reason },
       { status: 400 }
     );
   }
@@ -113,17 +122,17 @@ export async function GET(req: NextRequest) {
     const rateLimit = checkRateLimit(address);
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { 
+        {
           error: "Rate limit exceeded. Please try again later.",
-          retryAfter: RATE_LIMIT_WINDOW / 1000 
-        }, 
-        { 
+          retryAfter: RATE_LIMIT_WINDOW / 1000,
+        },
+        {
           status: 429,
           headers: {
-            'X-RateLimit-Limit': MAX_CLAIMS_PER_HOUR.toString(),
-            'X-RateLimit-Remaining': '0',
-            'Retry-After': (RATE_LIMIT_WINDOW / 1000).toString()
-          }
+            "X-RateLimit-Limit": MAX_CLAIMS_PER_HOUR.toString(),
+            "X-RateLimit-Remaining": "0",
+            "Retry-After": (RATE_LIMIT_WINDOW / 1000).toString(),
+          },
         }
       );
     }
@@ -143,25 +152,27 @@ export async function GET(req: NextRequest) {
     const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
     const signature = await wallet.signMessage(ethers.getBytes(messageHash));
 
-    return NextResponse.json({
-      success: true,
-      address,
-      score: scoreNum,
-      sessionId,
-      signature,
-      timestamp: ts,
-      remaining: rateLimit.remaining
-    }, {
-      headers: {
-        'X-RateLimit-Limit': MAX_CLAIMS_PER_HOUR.toString(),
-        'X-RateLimit-Remaining': rateLimit.remaining.toString()
-      }
-    });
-
-  } catch (err: any) {
-    console.error('Signature generation error:', err);
     return NextResponse.json(
-      { error: 'Failed to generate signature', details: err.message }, 
+      {
+        success: true,
+        address,
+        score: scoreNum,
+        sessionId,
+        signature,
+        timestamp: ts,
+        remaining: rateLimit.remaining,
+      },
+      {
+        headers: {
+          "X-RateLimit-Limit": MAX_CLAIMS_PER_HOUR.toString(),
+          "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+        },
+      }
+    );
+  } catch (err: any) {
+    console.error("Signature generation error:", err);
+    return NextResponse.json(
+      { error: "Failed to generate signature", details: err.message },
       { status: 500 }
     );
   }
@@ -174,12 +185,20 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { playerAddress, score, sessionId, timestamp } = body;
+    const validation = validateClaimRequest(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Invalid input", details: validation.error.errors },
+        { status: 400 }
+      );
+    }
+    const { playerAddress, score, sessionId, timestamp } = validation.data;
+    //const { playerAddress, score, sessionId, timestamp } = body;
 
     // Validate required fields
     if (!playerAddress || score === undefined || !sessionId) {
       return NextResponse.json(
-        { error: 'Missing required fields: playerAddress, score, sessionId' },
+        { error: "Missing required fields: playerAddress, score, sessionId" },
         { status: 400 }
       );
     }
@@ -187,7 +206,7 @@ export async function POST(req: NextRequest) {
     // Validate address
     if (!ethers.isAddress(playerAddress)) {
       return NextResponse.json(
-        { error: 'Invalid Ethereum address' },
+        { error: "Invalid Ethereum address" },
         { status: 400 }
       );
     }
@@ -205,7 +224,7 @@ export async function POST(req: NextRequest) {
     const rateLimit = checkRateLimit(playerAddress);
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'Rate limit exceeded. Please try again later.' },
+        { error: "Rate limit exceeded. Please try again later." },
         { status: 429 }
       );
     }
@@ -213,18 +232,19 @@ export async function POST(req: NextRequest) {
     // Verify timestamp is recent (prevent replay attacks)
     if (timestamp) {
       const timeDiff = Date.now() - timestamp;
-      if (timeDiff > 5 * 60 * 1000) { // 5 minutes
+      if (timeDiff > 5 * 60 * 1000) {
+        // 5 minutes
         return NextResponse.json(
-          { error: 'Session expired. Please play again.' },
+          { error: "Session expired. Please play again." },
           { status: 400 }
         );
       }
     }
 
-    console.log('🎮 Processing claim request...');
-    console.log('Player:', playerAddress);
-    console.log('Score:', score);
-    console.log('Session:', sessionId);
+    console.log("🎮 Processing claim request...");
+    console.log("Player:", playerAddress);
+    console.log("Score:", score);
+    console.log("Session:", sessionId);
 
     // Connect to blockchain
     const provider = new ethers.JsonRpcProvider(RPC_URL);
@@ -235,43 +255,43 @@ export async function POST(req: NextRequest) {
     const alreadyClaimed = await contract.claimedSessions(sessionId);
     if (alreadyClaimed) {
       return NextResponse.json(
-        { error: 'This game session has already been claimed' },
+        { error: "This game session has already been claimed" },
         { status: 400 }
       );
     }
 
     // Check wallet balance for gas
     const balance = await provider.getBalance(wallet.address);
-    if (balance < ethers.parseEther('0.001')) {
-      console.error('Low gas balance:', ethers.formatEther(balance));
+    if (balance < ethers.parseEther("0.001")) {
+      console.error("Low gas balance:", ethers.formatEther(balance));
       return NextResponse.json(
-        { error: 'Server wallet low on gas. Please contact support.' },
+        { error: "Server wallet low on gas. Please contact support." },
         { status: 500 }
       );
     }
 
     // Mint tokens
-    console.log('📝 Calling mintReward...');
+    console.log("📝 Calling mintReward...");
     const tx = await contract.mintReward(
       playerAddress,
       score / 100, // Convert score to coins (200 score = 2 coins)
       sessionId
     );
 
-    console.log('✉️ Transaction sent:', tx.hash);
-    console.log('⏳ Waiting for confirmation...');
+    console.log("✉️ Transaction sent:", tx.hash);
+    console.log("⏳ Waiting for confirmation...");
 
     // Wait for confirmation
     const receipt = await tx.wait();
-    console.log('✅ Transaction confirmed!');
+    console.log("✅ Transaction confirmed!");
 
     // Get new balance
-    let newBalance = '0';
+    let newBalance = "0";
     try {
       const balance = await contract.balanceOf(playerAddress);
       newBalance = ethers.formatEther(balance);
     } catch (error) {
-      console.warn('Could not fetch new balance:', error);
+      console.warn("Could not fetch new balance:", error);
     }
 
     return NextResponse.json({
@@ -281,31 +301,44 @@ export async function POST(req: NextRequest) {
       tokens: score / 100,
       newBalance,
       message: `Successfully minted ${score / 100} MARIO tokens!`,
-      explorerUrl: `https://amoy.polygonscan.com/tx/${receipt.hash}`
+      explorerUrl: `https://amoy.polygonscan.com/tx/${receipt.hash}`,
     });
+    // } catch (error: any) {
+    //   console.error("❌ Minting error:", error);
 
-  } catch (error: any) {
-    console.error('❌ Minting error:', error);
+    //   let errorMessage = "Failed to mint tokens";
 
-    let errorMessage = 'Failed to mint tokens';
-    
-    if (error.code === 'INSUFFICIENT_FUNDS') {
-      errorMessage = 'Server wallet has insufficient funds';
-    } else if (error.message?.includes('Only game admins')) {
-      errorMessage = 'Server wallet is not authorized as game admin';
-    } else if (error.message?.includes('Session already claimed')) {
-      errorMessage = 'This game session has already been claimed';
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
+    //   if (error.code === "INSUFFICIENT_FUNDS") {
+    //     errorMessage = "Server wallet has insufficient funds";
+    //   } else if (error.message?.includes("Only game admins")) {
+    //     errorMessage = "Server wallet is not authorized as game admin";
+    //   } else if (error.message?.includes("Session already claimed")) {
+    //     errorMessage = "This game session has already been claimed";
+    //   } else if (error.message) {
+    //     errorMessage = error.message;
+    //   }
 
-    return NextResponse.json(
-      { 
-        error: errorMessage,
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    //   return NextResponse.json(
+    //     {
+    //       error: errorMessage,
+    //       details:
+    //         process.env.NODE_ENV === "development" ? error.message : undefined,
+    //     },
+    //     { status: 500 }
+    //   );
+    // }
+  } catch (error) {
+    Sentry.captureException(error, {
+      tags: {
+        endpoint: "/api/claim",
+        method: "POST",
       },
-      { status: 500 }
-    );
+      extra: {
+        playerAddress: String,
+        score: Number,
+      },
+    });
+    throw error;
   }
 }
 
@@ -313,11 +346,14 @@ export async function POST(req: NextRequest) {
  * OPTIONS endpoint - For CORS
  */
 export async function OPTIONS(req: NextRequest) {
-  return NextResponse.json({}, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+  return NextResponse.json(
+    {},
+    {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
     }
-  });
+  );
 }

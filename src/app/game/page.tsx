@@ -97,6 +97,7 @@ export default function GamePage() {
             minHeight: '200px'
           }}
         >
+          
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row items-center justify-between gap-8">
               
