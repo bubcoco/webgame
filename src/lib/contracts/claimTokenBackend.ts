@@ -1,4 +1,3 @@
-// src/lib/contracts/claimTokenBackend.ts
 import { ethers } from 'ethers';
 import { ClaimResponse } from '../types';
 
@@ -20,7 +19,7 @@ function generateSessionId(playerAddress: string, score: number, timestamp: numb
 }
 
 /**
- * Claim tokens via backend API (RECOMMENDED - More Secure)
+ * Claim tokens via backend API 
  * This method doesn't require the player's wallet to be a game admin
  */
 export async function claimTokensViaBackend({
@@ -101,7 +100,7 @@ export async function claimTokensViaBackend({
 
 /**
  * Get verification signature from backend (optional)
- * Use this if you want to verify scores before allowing claim
+ * Use this to verify scores before allowing claim
  */
 export async function getClaimSignature(
   playerAddress: string,
@@ -134,71 +133,71 @@ export async function getClaimSignature(
  * Claim tokens directly (requires player wallet to be game admin)
  * This is the old method - less secure
  */
-export async function claimTokensDirect({
-  score,
-  playerAddress,
-  signer,
-  setIsClaiming
-}: ClaimTokenParams & { signer: ethers.Signer }): Promise<ClaimResponse> {
+// export async function claimTokensDirect({
+//   score,
+//   playerAddress,
+//   signer,
+//   setIsClaiming
+// }: ClaimTokenParams & { signer: ethers.Signer }): Promise<ClaimResponse> {
   
-  const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
-  const contractABI = [
-    "function mintReward(address player, uint256 coinsCollected, bytes32 sessionId) external",
-  ];
+//   const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
+//   const contractABI = [
+//     "function mintReward(address player, uint256 coinsCollected, bytes32 sessionId) external",
+//   ];
 
-  if (!CONTRACT_ADDRESS) {
-    return { 
-      success: false, 
-      error: 'Contract address not configured' 
-    };
-  }
+//   if (!CONTRACT_ADDRESS) {
+//     return { 
+//       success: false, 
+//       error: 'Contract address not configured' 
+//     };
+//   }
 
-  if (score <= 0) {
-    return { 
-      success: false, 
-      error: 'You need to collect at least 1 coin!' 
-    };
-  }
+//   if (score <= 0) {
+//     return { 
+//       success: false, 
+//       error: 'You need to collect at least 1 coin!' 
+//     };
+//   }
 
-  setIsClaiming(true);
+//   setIsClaiming(true);
 
-  try {
-    const timestamp = Date.now();
-    const sessionId = generateSessionId(playerAddress, score, timestamp);
+//   try {
+//     const timestamp = Date.now();
+//     const sessionId = generateSessionId(playerAddress, score, timestamp);
 
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, signer);
+//     const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, signer);
     
-    console.log('📝 Minting tokens directly...');
-    const tx = await contract.mintReward(playerAddress, score / 100, sessionId);
+//     console.log('📝 Minting tokens directly...');
+//     const tx = await contract.mintReward(playerAddress, score / 100, sessionId);
     
-    console.log('✉️ Transaction sent:', tx.hash);
-    const receipt = await tx.wait();
-    console.log('✅ Transaction confirmed!');
+//     console.log('✉️ Transaction sent:', tx.hash);
+//     const receipt = await tx.wait();
+//     console.log('✅ Transaction confirmed!');
 
-    return {
-      success: true,
-      txHash: receipt.hash,
-      tokens: score / 100
-    };
+//     return {
+//       success: true,
+//       txHash: receipt.hash,
+//       tokens: score / 100
+//     };
 
-  } catch (error: any) {
-    console.error('❌ Direct claim failed:', error);
+//   } catch (error: any) {
+//     console.error('❌ Direct claim failed:', error);
     
-    let errorMsg = 'Transaction failed';
+//     let errorMsg = 'Transaction failed';
     
-    if (error.message?.includes('Only game admins')) {
-      errorMsg = 'Your wallet is not authorized. Please use the backend claim method.';
-    } else if (error.message?.includes('Session already claimed')) {
-      errorMsg = 'This game session has already been claimed.';
-    } else if (error.code === 'ACTION_REJECTED') {
-      errorMsg = 'Transaction was rejected.';
-    } else if (error.message) {
-      errorMsg = error.message;
-    }
+//     if (error.message?.includes('Only game admins')) {
+//       errorMsg = 'Your wallet is not authorized. Please use the backend claim method.';
+//     } else if (error.message?.includes('Session already claimed')) {
+//       errorMsg = 'This game session has already been claimed.';
+//     } else if (error.code === 'ACTION_REJECTED') {
+//       errorMsg = 'Transaction was rejected.';
+//     } else if (error.message) {
+//       errorMsg = error.message;
+//     }
     
-    return { success: false, error: errorMsg };
+//     return { success: false, error: errorMsg };
 
-  } finally {
-    setIsClaiming(false);
-  }
-}
+//   } finally {
+//     setIsClaiming(false);
+//   }
+// }

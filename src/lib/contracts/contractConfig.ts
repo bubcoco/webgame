@@ -1,5 +1,3 @@
-// src/lib/blockchain/contractConfig.ts
-
 export const CONTRACT_CONFIG = {
   address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '',
   abi: [
