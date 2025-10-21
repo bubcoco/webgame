@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ethers } from 'ethers';
 
 // Configuration
-const PRIVATE_KEY = process.env.GAME_ADMIN_PRIVATE_KEY!; // Store securely in .env
+const PRIVATE_KEY = process.env.PRIVATE_KEY!; // Store securely in .env
 const RPC_URL = process.env.RPC_URL!; // e.g., Alchemy, Infura
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS!;
 
