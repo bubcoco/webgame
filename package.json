@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "@sentry/nextjs": "^10.20.0",
+    "cross-spawn": "^7.0.6",
     "ethers": "^6.15.0",
     "hardhat": "^3.0.4",
     "kaboom": "^3000.1.17",
     "lucide-react": "^0.542.0",
+    "minimatch": "^10.0.3",
     "next": "15.5.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
