@@ -30,4 +30,3 @@ jobs:
             --allow-unauthenticated \
             --port 3000 \
             --memory 512Mi \
-            --project ${{ secrets.env.GCP_PROJECT_ID }}
