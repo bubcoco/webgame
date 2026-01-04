@@ -8,10 +8,10 @@ const nextConfig: NextConfig = {
     domains: ['bubblyxyz.com'], // Add your image domains here
   },
   typescript: {
-    ignoreBuildErrors: true, // Ignore TypeScript errors during build
+    ignoreBuildErrors: false, // Validate TypeScript during build
   },
   eslint: {
-    ignoreDuringBuilds: true, // Ignore ESLint errors during build
+    ignoreDuringBuilds: false, // Run ESLint during build
   },
   output: 'standalone', // Use standalone output for better performance in production
   
