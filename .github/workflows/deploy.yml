@@ -29,4 +29,5 @@ jobs:
             --region asia-southeast1 \
             --allow-unauthenticated \
             --port 3000 \
-            --memory 512Mi
+            --memory 512Mi \
+            --project ${{ secrets.GCP_PROJECT_ID }}
