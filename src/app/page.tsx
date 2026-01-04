@@ -11,7 +11,7 @@ const HomePage = () => {
 
   useEffect(() => {
     setIsVisible(true);
-    
+
     const handleMouseMove = (e: any) => {
       setMousePosition({
         x: (e.clientX / window.innerWidth - 0.5) * 20,
@@ -52,7 +52,9 @@ const HomePage = () => {
     {
       title: 'Blockchain',
       icon: <Rocket className="w-5 h-5" />,
-      skills: ['Solidity', 'Hardhat', 'Ethers.js']
+      skills: ['Solidity', 'Hardhat', 'Ethers.js', 'Hyperledger Besu', 'Hyperledger Besu (with customize stateful precompile)',
+        'Blockscout'
+      ]
     }
   ];
 
@@ -73,7 +75,7 @@ const HomePage = () => {
         overflow: 'hidden',
         pointerEvents: 'none'
       }}>
-        <div 
+        <div
           style={{
             position: 'absolute',
             top: '25%',
@@ -89,7 +91,7 @@ const HomePage = () => {
             transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`
           }}
         />
-        <div 
+        <div
           style={{
             position: 'absolute',
             bottom: '25%',
@@ -161,7 +163,7 @@ const HomePage = () => {
               <Sparkles style={{ width: '24px', height: '24px', color: 'white' }} />
             </div>
           </div>
-          
+
           <h1 style={{
             fontSize: '3.75rem',
             fontWeight: 'bold',
@@ -190,7 +192,7 @@ const HomePage = () => {
           <p style={{ color: '#9ca3af', fontSize: '0.95rem' }}>
             🇹🇭 Thailand • Exploring distributed systems & DevOps
           </p>
-          
+
           <div style={{
             display: 'flex',
             justifyContent: 'center',
@@ -199,7 +201,7 @@ const HomePage = () => {
             marginTop: '2rem',
             flexWrap: 'wrap'
           }}>
-            <a 
+            <a
               href="https://github.com/bubcoco"
               style={{
                 display: 'flex',
@@ -224,7 +226,7 @@ const HomePage = () => {
               <Github size={20} />
               <span style={{ fontSize: '0.875rem' }}>GitHub</span>
             </a>
-            <a 
+            <a
               href="https://www.linkedin.com/in/bubblexyz/"
               style={{
                 display: 'flex',
@@ -249,7 +251,7 @@ const HomePage = () => {
               <Linkedin size={20} />
               <span style={{ fontSize: '0.875rem' }}>LinkedIn</span>
             </a>
-            <a 
+            <a
               // href="mailto:tinnapat.jaimunt@gmail.com"
               style={{
                 display: 'flex',
@@ -313,11 +315,11 @@ const HomePage = () => {
             fontSize: '1.125rem',
             marginBottom: '1.5rem'
           }}>
-            I'm a passionate developer from Thailand who loves building scalable applications and exploring new technologies. 
+            I'm a passionate developer from Thailand who loves building scalable applications and exploring new technologies.
             With a strong foundation in modern web technologies and a keen eye for design, I specialize in bringing ideas to life,
             from sleek websites to fun, browser-based games. Currently diving deep into distributed systems and DevOps practices.
           </p>
-          
+
           {/* Currently Learning */}
           <div style={{
             background: 'rgba(6, 182, 212, 0.1)',
@@ -384,7 +386,7 @@ const HomePage = () => {
           }}>
             Tech Stack
           </h2>
-          
+
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
@@ -488,74 +490,230 @@ const HomePage = () => {
           }}>
             Featured Projects
           </h2>
+
+          {/* Projects Grid */}
           <div style={{
-            background: 'linear-gradient(to bottom right, rgba(55, 65, 81, 0.5), rgba(31, 41, 55, 0.5))',
-            backdropFilter: 'blur(8px)',
-            padding: '2rem',
-            borderRadius: '1rem',
-            border: '1px solid rgba(75, 85, 99, 0.5)',
-            position: 'relative',
-            overflow: 'hidden'
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '1.5rem'
           }}>
+            {/* Super Jump Quest */}
             <div style={{
-              position: 'absolute',
-              top: 0,
-              right: 0,
-              width: '128px',
-              height: '128px',
-              background: 'linear-gradient(to bottom right, #06b6d4, #a855f7)',
-              opacity: 0.1,
-              filter: 'blur(64px)'
-            }} />
-            
-            <div style={{ position: 'relative' }}>
+              background: 'linear-gradient(to bottom right, rgba(55, 65, 81, 0.5), rgba(31, 41, 55, 0.5))',
+              backdropFilter: 'blur(8px)',
+              padding: '1.5rem',
+              borderRadius: '1rem',
+              border: '1px solid rgba(75, 85, 99, 0.5)',
+              position: 'relative',
+              overflow: 'hidden',
+              transition: 'all 0.3s'
+            }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(34, 211, 238, 0.5)';
+                e.currentTarget.style.transform = 'translateY(-4px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(75, 85, 99, 0.5)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.75rem',
-                marginBottom: '1rem'
+                marginBottom: '0.75rem'
               }}>
-                <Gamepad2 style={{ width: '32px', height: '32px', color: '#22d3ee' }} />
-                <h3 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#22d3ee' }}>
+                <span style={{ fontSize: '2rem' }}>🎮</span>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#22d3ee' }}>
                   Super Jump Quest
                 </h3>
               </div>
-              
-              <p style={{
-                color: '#d1d5db',
-                marginBottom: '1.5rem',
-                fontSize: '1.125rem',
-                lineHeight: '1.75'
-              }}>
-                A retro-style platformer game built with Next.js and HTML5 Canvas. Features player animations, basic enemy AI, coin collection, and a dynamic camera system.
+              <p style={{ color: '#9ca3af', marginBottom: '1rem', fontSize: '0.875rem', lineHeight: '1.5' }}>
+                Retro platformer with animations, enemy AI, coins, and dynamic camera. EVM rewards!
               </p>
-              
-              <a 
-                href="/game"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  background: 'linear-gradient(to right, #06b6d4, #a855f7)',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  padding: '1rem 2rem',
-                  borderRadius: '0.75rem',
-                  textDecoration: 'none',
-                  transition: 'all 0.3s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.05)';
-                  e.currentTarget.style.boxShadow = '0 0 30px rgba(6, 182, 212, 0.5)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                <Gamepad2 style={{ width: '20px', height: '20px' }} />
-                <span>Play Game</span>
-                <ArrowRight style={{ width: '20px', height: '20px' }} />
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                <span style={{ background: 'rgba(34, 197, 94, 0.2)', color: '#4ade80', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem' }}>Next.js</span>
+                <span style={{ background: 'rgba(124, 58, 237, 0.2)', color: '#a78bfa', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem' }}>EVM</span>
+              </div>
+              <a href="/game" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                background: 'linear-gradient(to right, #06b6d4, #a855f7)',
+                color: 'white',
+                fontWeight: 'bold',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '0.5rem',
+                textDecoration: 'none',
+                fontSize: '0.875rem'
+              }}>
+                <Gamepad2 style={{ width: '16px', height: '16px' }} />
+                Play Game
+                <ArrowRight style={{ width: '16px', height: '16px' }} />
+              </a>
+            </div>
+
+            {/* Racing 3D */}
+            <div style={{
+              background: 'linear-gradient(to bottom right, rgba(55, 65, 81, 0.5), rgba(31, 41, 55, 0.5))',
+              backdropFilter: 'blur(8px)',
+              padding: '1.5rem',
+              borderRadius: '1rem',
+              border: '1px solid rgba(75, 85, 99, 0.5)',
+              position: 'relative',
+              overflow: 'hidden',
+              transition: 'all 0.3s'
+            }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(231, 76, 60, 0.5)';
+                e.currentTarget.style.transform = 'translateY(-4px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(75, 85, 99, 0.5)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                marginBottom: '0.75rem'
+              }}>
+                <span style={{ fontSize: '2rem' }}>🏎️</span>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#f39c12' }}>
+                  Racing 3D
+                </h3>
+              </div>
+              <p style={{ color: '#9ca3af', marginBottom: '1rem', fontSize: '0.875rem', lineHeight: '1.5' }}>
+                Pseudo-3D racing with lane switching, obstacles, coin collection, and speed boost!
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                <span style={{ background: 'rgba(231, 76, 60, 0.2)', color: '#e74c3c', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem' }}>Canvas</span>
+                <span style={{ background: 'rgba(124, 58, 237, 0.2)', color: '#a78bfa', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem' }}>EVM</span>
+              </div>
+              <a href="/racing" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                background: 'linear-gradient(to right, #f39c12, #e74c3c)',
+                color: 'white',
+                fontWeight: 'bold',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '0.5rem',
+                textDecoration: 'none',
+                fontSize: '0.875rem'
+              }}>
+                <Gamepad2 style={{ width: '16px', height: '16px' }} />
+                Play Racing
+                <ArrowRight style={{ width: '16px', height: '16px' }} />
+              </a>
+            </div>
+
+            {/* Rocket Launcher */}
+            <div style={{
+              background: 'linear-gradient(to bottom right, rgba(55, 65, 81, 0.5), rgba(31, 41, 55, 0.5))',
+              backdropFilter: 'blur(8px)',
+              padding: '1.5rem',
+              borderRadius: '1rem',
+              border: '1px solid rgba(75, 85, 99, 0.5)',
+              position: 'relative',
+              overflow: 'hidden',
+              transition: 'all 0.3s'
+            }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                e.currentTarget.style.transform = 'translateY(-4px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(75, 85, 99, 0.5)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                marginBottom: '0.75rem'
+              }}>
+                <span style={{ fontSize: '2rem' }}>🚀</span>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#22c55e' }}>
+                  Rocket Launcher
+                </h3>
+              </div>
+              <p style={{ color: '#9ca3af', marginBottom: '1rem', fontSize: '0.875rem', lineHeight: '1.5' }}>
+                Token launchpad with bonding curves, trading simulation, and Phantom wallet!
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                <span style={{ background: 'rgba(20, 241, 149, 0.2)', color: '#14F195', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem' }}>Solana</span>
+                <span style={{ background: 'rgba(153, 69, 255, 0.2)', color: '#9945FF', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem' }}>DeFi</span>
+              </div>
+              <a href="/pump" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                background: 'linear-gradient(to right, #9945FF, #14F195)',
+                color: 'white',
+                fontWeight: 'bold',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '0.5rem',
+                textDecoration: 'none',
+                fontSize: '0.875rem'
+              }}>
+                <Rocket style={{ width: '16px', height: '16px' }} />
+                Launch Tokens
+                <ArrowRight style={{ width: '16px', height: '16px' }} />
+              </a>
+            </div>
+
+            {/* Sonic Rush */}
+            <div style={{
+              background: 'linear-gradient(to bottom right, rgba(55, 65, 81, 0.5), rgba(31, 41, 55, 0.5))',
+              backdropFilter: 'blur(8px)',
+              padding: '1.5rem',
+              borderRadius: '1rem',
+              border: '1px solid rgba(75, 85, 99, 0.5)',
+              position: 'relative',
+              overflow: 'hidden',
+              transition: 'all 0.3s'
+            }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(21, 101, 192, 0.5)';
+                e.currentTarget.style.transform = 'translateY(-4px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(75, 85, 99, 0.5)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                marginBottom: '0.75rem'
+              }}>
+                <span style={{ fontSize: '2rem' }}>⚡</span>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1565C0' }}>
+                  Sonic Rush
+                </h3>
+              </div>
+              <p style={{ color: '#9ca3af', marginBottom: '1rem', fontSize: '0.875rem', lineHeight: '1.5' }}>
+                Fast platformer with rings, speed boosts, rolling attacks. Dual EVM + Solana wallets!
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                <span style={{ background: 'rgba(124, 58, 237, 0.2)', color: '#a78bfa', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem' }}>EVM</span>
+                <span style={{ background: 'rgba(20, 241, 149, 0.2)', color: '#14F195', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem' }}>Solana</span>
+              </div>
+              <a href="/sonic" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                background: 'linear-gradient(to right, #1565C0, #42A5F5)',
+                color: 'white',
+                fontWeight: 'bold',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '0.5rem',
+                textDecoration: 'none',
+                fontSize: '0.875rem'
+              }}>
+                <Gamepad2 style={{ width: '16px', height: '16px' }} />
+                Play Sonic
+                <ArrowRight style={{ width: '16px', height: '16px' }} />
               </a>
             </div>
           </div>

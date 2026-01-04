@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ethers } from 'ethers';
 
 // Configuration
-const PRIVATE_KEY = process.env.PRIVATE_KEY!; // Store securely in .env
-const RPC_URL = process.env.RPC_URL!; // e.g., Alchemy, Infura
+const PRIVATE_KEY = process.env.PRIVATE_KEY!;
+const RPC_URL = process.env.RPC_URL!; 
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS!;
 
 const contractABI = [
