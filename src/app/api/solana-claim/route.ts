@@ -1,11 +1,8 @@
 // src/app/api/solana-claim/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { Connection, Keypair, PublicKey, Transaction } from '@solana/web3.js';
-import * as Sentry from '@sentry/nextjs';
 
 // Configuration
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com';
-const PROGRAM_ID = process.env.SOLANA_PROGRAM_ID || 'GameRwrdPrgm11111111111111111111111111111111';
 
 // Rate limiting
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -77,19 +74,11 @@ export async function POST(req: NextRequest) {
     console.log('Score:', score);
     console.log('Game:', gameType);
 
-    // Connect to Solana
-    const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
-    
-    // In production, this would:
-    // 1. Load authority keypair from environment
-    // 2. Build transaction to call program's claim_reward instruction
-    // 3. Sign and send transaction
-    // 4. Wait for confirmation
-    
     // For demo, simulate successful claim
+    // In production, this would call the Solana program
     const tokens = Math.floor(score / 100);
     
-    // Generate mock signature (in production, this comes from actual tx)
+    // Generate mock signature
     const mockSignature = Array.from({ length: 88 }, () => 
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'[
         Math.floor(Math.random() * 62)
@@ -98,7 +87,6 @@ export async function POST(req: NextRequest) {
 
     console.log('✅ Solana claim processed (demo mode)');
     console.log('Tokens:', tokens);
-    console.log('Signature:', mockSignature.slice(0, 20) + '...');
 
     return NextResponse.json({
       success: true,
@@ -110,10 +98,6 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error('❌ Solana claim error:', error);
-    
-    Sentry.captureException(error, {
-      tags: { endpoint: '/api/solana-claim', method: 'POST' },
-    });
 
     return NextResponse.json(
       { error: 'Failed to process Solana claim', details: error.message },

@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Web3 Game Portfolio
 
-## Getting Started
+A Next.js portfolio site featuring blockchain-integrated games where players can earn tokens.
 
-First, run the development server:
+## 🎮 Games
+
+| Game | Description | Blockchain |
+|------|-------------|------------|
+| **Super Jump Quest** | Mario-style platformer with coin collection | EVM (Polygon Amoy) |
+| **Racing 3D** | Pseudo-3D racing game with obstacles and coins | EVM (Polygon Amoy) |
+| **Sonic Rush** | Fast-paced platformer with ring collection | EVM + Solana |
+| **Rocket Launcher** | Pump.fun-style token trading simulator | Solana |
+
+## 🚀 Quick Start
 
 ```bash
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Build for production
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🔧 Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create a `.env` file:
 
-## Learn More
+```env
+# Blockchain (EVM)
+PRIVATE_KEY=your_wallet_private_key
+RPC_URL=https://rpc-amoy.polygon.technology
+CONTRACT_ADDRESS=your_contract_address
+NEXT_PUBLIC_CONTRACT_ADDRESS=your_contract_address
 
-To learn more about Next.js, take a look at the following resources:
+# Solana (optional)
+SOLANA_RPC_URL=https://api.devnet.solana.com
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📦 Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── app/
+│   ├── game/        # Super Jump Quest
+│   ├── racing/      # Racing 3D
+│   ├── sonic/       # Sonic Rush
+│   ├── pump/        # Rocket Launcher
+│   └── api/claim/   # Token claim API
+├── components/      # Reusable components
+└── lib/             # Utilities & contracts
+```
 
-## Deploy on Vercel
+## 🌐 Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### GCP Cloud Run (CI/CD)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Automatically deploys on push to `main` via GitHub Actions.
+
+**Required GitHub Secrets:**
+- `GCP_PROJECT_ID` - GCP project ID
+- `GCP_SA_KEY` - Service account JSON key
+- `PRIVATE_KEY` - Wallet private key
+- `RPC_URL` - Polygon RPC URL
+- `CONTRACT_ADDRESS` - Deployed contract address
+
+### Manual Deploy
+
+```bash
+gcloud run deploy profile-app \
+  --source . \
+  --region asia-southeast1 \
+  --allow-unauthenticated
+```
+
+## 🛠 Tech Stack
+
+- **Frontend:** Next.js 15, React, TypeScript, Canvas API
+- **Blockchain:** Ethers.js, Solana Web3.js
+- **Deployment:** Docker, GCP Cloud Run, GitHub Actions
+
+## 📄 License
+
+MIT

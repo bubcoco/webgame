@@ -1,4 +1,6 @@
-import { Connection, PublicKey, Transaction } from '@solana/web3.js';
+// src/lib/contracts/claimSolana.ts
+// Client-side Solana utilities - no direct @solana/web3.js imports to avoid build issues
+
 import { SOLANA_CONFIG } from './solanaConfig';
 
 interface ClaimSolanaParams {
@@ -21,7 +23,7 @@ function generateSessionId(playerAddress: string, score: number, timestamp: numb
   const encoder = new TextEncoder();
   const data = encoder.encode(`${playerAddress}:${score}:${timestamp}`);
   
-  // Simple hash using Web Crypto API
+  // Simple hash using XOR
   const hashBuffer = new Uint8Array(32);
   for (let i = 0; i < data.length; i++) {
     hashBuffer[i % 32] ^= data[i];
@@ -68,7 +70,6 @@ export async function connectPhantom(): Promise<string | null> {
 
 /**
  * Claim rewards on Solana via backend API
- * The backend will call the Solana program
  */
 export async function claimSolanaReward({
   playerAddress,
@@ -94,7 +95,6 @@ export async function claimSolanaReward({
     console.log('Game:', gameType);
     console.log('Tokens to claim:', tokens);
 
-    // Call backend API to process Solana claim
     const response = await fetch('/api/solana-claim', {
       method: 'POST',
       headers: {
@@ -133,28 +133,16 @@ export async function claimSolanaReward({
 }
 
 /**
- * Get player's token balance on Solana
+ * Get player's token balance on Solana (placeholder)
  */
 export async function getSolanaBalance(
   playerAddress: string,
   gameType: 'pump' | 'sonic'
 ): Promise<number> {
-  try {
-    const connection = new Connection(SOLANA_CONFIG.rpcUrl);
-    const tokenMint = SOLANA_CONFIG.tokens[gameType].mint;
-    
-    if (!tokenMint) {
-      console.warn('Token mint not configured for:', gameType);
-      return 0;
-    }
-    
-    // In production, would fetch associated token account balance
-    // For demo, return 0
-    return 0;
-  } catch (error) {
-    console.error('Failed to fetch Solana balance:', error);
-    return 0;
-  }
+  // In production, would fetch via RPC
+  // For now, return 0
+  console.log('Getting balance for:', playerAddress, gameType);
+  return 0;
 }
 
 /**
